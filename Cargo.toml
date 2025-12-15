@@ -1,0 +1,27 @@
+[workspace]
+members = ["crates/*", "llm/*"]
+resolver = "3"
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+authors = ["clearloop <tianyi.gc@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/clearloop/ullm"
+documentation = "https://ullm.docs.rs"
+keywords = ["rust", "library", "framework"]
+
+[workspace.dependencies]
+ucore = { path = "crates/core", package = "ullm-core" }
+
+# crates-io dependencies
+anyhow = "1"
+bytes = "1.11.0"
+derive_more = { version = "2.1", features = ["display", "try_from"] }
+futures-core = "0.3"
+futures-util = "0.3"
+reqwest = { version = "0.12", features = ["json", "stream"] }
+schemars = "1.1.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
