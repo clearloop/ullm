@@ -5,7 +5,7 @@ pub use {
     config::Config,
     message::{Message, Role},
     provider::LLM,
-    reqwest::Client,
+    reqwest::{self, Client},
     response::{
         Choice, CompletionTokensDetails, FinishReason, LogProb, LogProbs, Response,
         ResponseMessage, TopLogProb, Usage,

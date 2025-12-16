@@ -1,7 +1,9 @@
 //! Configuration for a chat
 
+use serde::Serialize;
+
 /// Chat configuration
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Config {
     /// The model to use
     pub model: &'static str,

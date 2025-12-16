@@ -28,6 +28,22 @@ pub struct Response {
     pub usage: Usage,
 }
 
+impl Response {
+    /// Get the first message from the response
+    pub fn message(&self) -> Option<&String> {
+        self.choices
+            .first()
+            .and_then(|choice| choice.message.content.as_ref())
+    }
+
+    /// Get the first message from the response
+    pub fn reasoning(&self) -> Option<&String> {
+        self.choices
+            .first()
+            .and_then(|choice| choice.message.reasoning_content.as_ref())
+    }
+}
+
 /// A completion choice in a non-streaming response
 #[derive(Debug, Clone, Deserialize)]
 pub struct Choice {
