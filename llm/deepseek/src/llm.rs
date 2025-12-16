@@ -36,7 +36,7 @@ impl LLM for DeepSeek {
         self.client
             .request(Method::POST, ENDPOINT)
             .headers(self.headers.clone())
-            .json(&Request::new(config, messages))
+            .json(&Request::new(config, messages, false))
             .send()
             .await?
             .json::<Response>()

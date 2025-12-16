@@ -5,12 +5,6 @@ use serde::Serialize;
 /// Chat configuration
 #[derive(Debug, Clone, Serialize)]
 pub struct Config {
-    /// The model to use
-    pub model: &'static str,
-
-    /// Whether to enable thinking
-    pub think: bool,
-
     /// The frequency penalty of the model
     pub frequency: i8,
 
@@ -20,11 +14,17 @@ pub struct Config {
     /// Whether to return the log probabilities
     pub logprobs: bool,
 
+    /// The model to use
+    pub model: &'static str,
+
     /// The presence penalty of the model
     pub presence: i8,
 
     /// The temperature of the model
     pub temperature: f32,
+
+    /// Whether to enable thinking
+    pub think: bool,
 
     /// The top probability of the model
     pub top_p: f32,
@@ -37,4 +37,32 @@ pub struct Config {
 
     /// Whether to return the usage information in stream mode
     pub usage: bool,
+}
+
+impl Config {
+    /// Create a new configuration
+    pub fn new(model: &'static str) -> Self {
+        Self {
+            model,
+            ..Default::default()
+        }
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            frequency: 0,
+            json: false,
+            logprobs: false,
+            model: "deepseek-chat",
+            presence: 0,
+            temperature: 1.0,
+            think: false,
+            top_logprobs: 0,
+            top_p: 1.0,
+            tokens: 1000,
+            usage: true,
+        }
+    }
 }
