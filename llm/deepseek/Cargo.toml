@@ -13,5 +13,8 @@ ucore.workspace = true
 
 # crates-io dependencies
 anyhow.workspace = true
+async-stream.workspace = true
+futures-core.workspace = true
+futures-util.workspace = true
 serde.workspace = true
 serde_json.workspace = true

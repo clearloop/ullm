@@ -1,10 +1,11 @@
 //! Chat abstractions for the unified LLM Interfaces
 
 use crate::{
-    LLM, Response, Role,
+    LLM, Response, Role, StreamChunk,
     message::{AssistantMessage, Message, ToolMessage},
 };
 use anyhow::Result;
+use futures_core::Stream;
 use serde::Serialize;
 
 /// A chat for the LLM
@@ -24,6 +25,12 @@ impl<P: LLM> Chat<P> {
     pub async fn send(&mut self, message: Message) -> Result<Response> {
         self.messages.push(message.into());
         self.provider.send(&self.config, &self.messages).await
+    }
+
+    /// Send a message to the LLM with streaming
+    pub fn stream(&mut self, message: Message) -> impl Stream<Item = Result<StreamChunk>> {
+        self.messages.push(message.into());
+        self.provider.stream(&self.config, &self.messages)
     }
 }
 

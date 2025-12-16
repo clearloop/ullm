@@ -2,8 +2,10 @@
 
 use crate::{DeepSeek, Request};
 use anyhow::Result;
+use async_stream::try_stream;
+use futures_core::Stream;
 use ucore::{
-    Chat, ChatMessage, Client, Config, LLM, Response,
+    Chat, ChatMessage, Client, Config, LLM, Response, StreamChunk,
     reqwest::{
         Method,
         header::{self, HeaderMap},
@@ -45,5 +47,29 @@ impl LLM for DeepSeek {
             .json::<Response>()
             .await
             .map_err(Into::into)
+    }
+
+    /// Send a message to the LLM with streaming
+    fn stream(
+        &mut self,
+        config: &Config,
+        messages: &[ChatMessage],
+    ) -> impl Stream<Item = Result<StreamChunk>> {
+        let request = self
+            .client
+            .request(Method::POST, ENDPOINT)
+            .headers(self.headers.clone())
+            .json(&Request::from(config).messages(messages).stream());
+
+        try_stream! {
+            use futures_util::StreamExt;
+            let mut stream = request.send().await?.bytes_stream();
+            while let Some(chunk) = stream.next().await {
+                let text = String::from_utf8_lossy(&chunk?).into_owned();
+                for data in text.split("data: ").skip(1).filter(|s| !s.starts_with("[DONE]")) {
+                    yield serde_json::from_str(data.trim())?;
+                }
+            }
+        }
     }
 }

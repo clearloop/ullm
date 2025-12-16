@@ -16,7 +16,9 @@ ucore = { path = "crates/core", package = "ullm-core" }
 
 # crates-io dependencies
 anyhow = "1"
+async-stream = "0.3"
 bytes = "1.11.0"
+clap = "4.5"
 derive_more = { version = "2.1", features = ["display", "try_from"] }
 futures-core = "0.3"
 futures-util = "0.3"

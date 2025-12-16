@@ -1,7 +1,8 @@
 //! Provider abstractions for the unified LLM Interfaces
 
-use crate::{Chat, ChatMessage, Config, Response};
+use crate::{Chat, ChatMessage, Config, Response, StreamChunk};
 use anyhow::Result;
+use futures_core::Stream;
 use reqwest::Client;
 
 /// A trait for LLM providers
@@ -29,4 +30,11 @@ pub trait LLM: Sized + Clone {
         config: &Self::ChatConfig,
         messages: &[ChatMessage],
     ) -> impl Future<Output = Result<Response>>;
+
+    /// Send a message to the LLM with streaming
+    fn stream(
+        &mut self,
+        config: &Self::ChatConfig,
+        messages: &[ChatMessage],
+    ) -> impl Stream<Item = Result<StreamChunk>>;
 }
