@@ -1,9 +1,10 @@
 //! Configuration for a chat
 
 use crate::{Tool, ToolChoice};
+use serde::{Deserialize, Serialize};
 
 /// Chat configuration
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Config {
     /// The frequency penalty of the model
     pub frequency: i8,
@@ -15,7 +16,7 @@ pub struct Config {
     pub logprobs: bool,
 
     /// The model to use
-    pub model: &'static str,
+    pub model: String,
 
     /// The presence penalty of the model
     pub presence: i8,
@@ -50,9 +51,9 @@ pub struct Config {
 
 impl Config {
     /// Create a new configuration
-    pub fn new(model: &'static str) -> Self {
+    pub fn new(model: impl Into<String>) -> Self {
         Self {
-            model,
+            model: model.into(),
             ..Default::default()
         }
     }
@@ -88,7 +89,7 @@ impl Default for Config {
             frequency: 0,
             json: false,
             logprobs: false,
-            model: "deepseek-chat",
+            model: "deepseek-chat".into(),
             presence: 0,
             stop: Vec::new(),
             temperature: 1.0,

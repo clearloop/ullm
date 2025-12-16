@@ -4,13 +4,13 @@ use schemars::Schema;
 use serde::{Deserialize, Serialize};
 
 /// A tool for the LLM
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Tool {
     /// The name of the tool
-    pub name: &'static str,
+    pub name: String,
 
     /// The description of the tool
-    pub description: &'static str,
+    pub description: String,
 
     /// The parameters of the tool
     pub parameters: Schema,
@@ -44,7 +44,7 @@ pub struct FunctionCall {
 }
 
 /// Controls which tool is called by the model
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum ToolChoice {
     /// Model will not call any tool
     None,
@@ -56,11 +56,14 @@ pub enum ToolChoice {
     Required,
 
     /// Model must call the specified function
-    Function(ToolChoiceFunction),
+    Function {
+        r#type: String,
+        function: ToolChoiceFunction,
+    },
 }
 
 /// A specific function to call
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ToolChoiceFunction {
     /// The name of the function to call
     pub name: String,
@@ -69,26 +72,9 @@ pub struct ToolChoiceFunction {
 impl ToolChoice {
     /// Create a tool choice for a specific function
     pub fn function(name: impl Into<String>) -> Self {
-        ToolChoice::Function(ToolChoiceFunction { name: name.into() })
-    }
-}
-
-impl Serialize for ToolChoice {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match self {
-            ToolChoice::None => serializer.serialize_str("none"),
-            ToolChoice::Auto => serializer.serialize_str("auto"),
-            ToolChoice::Required => serializer.serialize_str("required"),
-            ToolChoice::Function(function) => {
-                use serde::ser::SerializeStruct;
-                let mut s = serializer.serialize_struct("ToolChoice", 2)?;
-                s.serialize_field("type", "function")?;
-                s.serialize_field("function", function)?;
-                s.end()
-            }
+        ToolChoice::Function {
+            r#type: "function".into(),
+            function: ToolChoiceFunction { name: name.into() },
         }
     }
 }

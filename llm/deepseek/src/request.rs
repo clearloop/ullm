@@ -22,7 +22,7 @@ pub struct Request {
     pub messages: Vec<ChatMessage>,
 
     /// The model we are using
-    pub model: &'static str,
+    pub model: String,
 
     /// The presence penalty to use for the response
     #[serde(skip_serializing_if = "Value::is_null")]
@@ -98,7 +98,7 @@ impl From<&Config> for Request {
             },
             max_tokens: config.tokens,
             messages: Vec::new(),
-            model: config.model,
+            model: config.model.clone(),
             presence_penalty: Number::from_f64(config.presence as f64)
                 .map(Value::Number)
                 .unwrap_or(Value::Null),
