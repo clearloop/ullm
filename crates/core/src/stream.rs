@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 /// A streaming chat completion chunk
 #[derive(Debug, Clone, Deserialize)]
-pub struct StreamChunk<M> {
+pub struct StreamChunk {
     /// A unique identifier for the chat completion
     pub id: String,
 
@@ -16,7 +16,7 @@ pub struct StreamChunk<M> {
     pub created: u64,
 
     /// The model used for the completion
-    pub model: M,
+    pub model: String,
 
     /// Backend configuration identifier
     pub system_fingerprint: Option<String>,
