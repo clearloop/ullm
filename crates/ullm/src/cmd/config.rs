@@ -29,6 +29,11 @@ impl Config {
         tracing::info!("Configuration saved to {}", CONFIG.display());
         Ok(())
     }
+
+    /// Get the core config
+    pub fn config(&self) -> &ucore::Config {
+        &self.config
+    }
 }
 
 impl Default for Config {

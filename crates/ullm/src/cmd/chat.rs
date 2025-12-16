@@ -1,15 +1,19 @@
 //! Chat command
 
+use super::Config;
 use crate::DeepSeek;
 use anyhow::Result;
 use clap::{Args, ValueEnum};
 use futures_util::StreamExt;
-use std::io::{BufRead, Write};
-use ucore::{ChatMessage, Client, Config, LLM, Message};
+use std::{
+    fmt::{Display, Formatter},
+    io::{BufRead, Write},
+};
+use ucore::{Chat, Client, LLM, Message};
 
-/// Chat with an LLM
+/// Chat command arguments
 #[derive(Debug, Args)]
-pub struct Chat {
+pub struct ChatCmd {
     /// The model provider to use
     #[arg(short, long, default_value = "deepseek")]
     pub model: Model,
@@ -18,24 +22,24 @@ pub struct Chat {
     pub message: Option<String>,
 }
 
-impl Chat {
+impl ChatCmd {
     /// Run the chat command
     pub async fn run(&self, stream_mode: bool) -> Result<()> {
-        let key = std::env::var("DEEPSEEK_API_KEY")?;
-        let mut provider = match self.model {
-            Model::Deepseek => DeepSeek::new(Client::new(), &key)?,
+        let config = Config::load()?;
+        let key = config
+            .key
+            .get(&self.model.to_string())
+            .ok_or_else(|| anyhow::anyhow!("missing {:?} API key in config", self.model))?;
+        let provider = match self.model {
+            Model::Deepseek => DeepSeek::new(Client::new(), key)?,
         };
 
-        let config = Config::default();
-        let mut messages: Vec<ChatMessage> = Vec::new();
-
+        let mut chat = provider.chat(config.config().clone());
         if let Some(msg) = &self.message {
-            messages.push(Message::user(msg).into());
-            Self::send(&mut provider, &config, &mut messages, stream_mode).await?;
+            Self::send(&mut chat, Message::user(msg), stream_mode).await?;
         } else {
             let stdin = std::io::stdin();
             let mut stdout = std::io::stdout();
-
             loop {
                 print!("> ");
                 stdout.flush()?;
@@ -53,25 +57,19 @@ impl Chat {
                     break;
                 }
 
-                messages.push(Message::user(input).into());
-                Self::send(&mut provider, &config, &mut messages, stream_mode).await?;
+                Self::send(&mut chat, Message::user(input), stream_mode).await?;
             }
         }
 
         Ok(())
     }
 
-    async fn send(
-        provider: &mut DeepSeek,
-        config: &Config,
-        messages: &mut Vec<ChatMessage>,
-        stream_mode: bool,
-    ) -> Result<()> {
+    async fn send(chat: &mut Chat<DeepSeek>, message: Message, stream_mode: bool) -> Result<()> {
         if stream_mode {
             let mut response_content = String::new();
             {
                 let mut reasoning = false;
-                let mut stream = std::pin::pin!(provider.stream(config, messages));
+                let mut stream = std::pin::pin!(chat.stream(message));
                 while let Some(chunk) = stream.next().await {
                     let chunk = chunk?;
                     if let Some(content) = chunk.content() {
@@ -94,18 +92,19 @@ impl Chat {
                 }
             }
             println!();
-            messages.push(Message::assistant(&response_content).into());
+            chat.messages
+                .push(Message::assistant(&response_content).into());
         } else {
-            let response = provider.send(config, messages).await?;
+            let response = chat.send(message).await?;
             if let Some(reasoning_content) = response.reasoning() {
                 println!("reasoning: {reasoning_content}");
-                messages.push(Message::assistant(reasoning_content).into());
             }
 
             if let Some(content) = response.message() {
                 println!("{content}");
-                messages.push(Message::assistant(content).into());
             }
+            chat.messages
+                .push(Message::assistant(response.message().unwrap_or(&String::new())).into());
         }
         Ok(())
     }
@@ -117,4 +116,12 @@ pub enum Model {
     /// DeepSeek model
     #[default]
     Deepseek,
+}
+
+impl Display for Model {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Model::Deepseek => write!(f, "deepseek"),
+        }
+    }
 }

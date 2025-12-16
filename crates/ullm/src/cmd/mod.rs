@@ -4,9 +4,8 @@ mod chat;
 mod config;
 
 use clap::{Parser, Subcommand};
-use tracing::Level;
-use tracing_subscriber::FmtSubscriber;
-pub use {chat::Chat, config::Config};
+use tracing_subscriber::{EnvFilter, fmt};
+pub use {chat::ChatCmd, config::Config};
 
 /// Unified LLM Interface CLI
 #[derive(Debug, Parser)]
@@ -29,22 +28,30 @@ pub struct App {
 #[derive(Debug, Subcommand)]
 pub enum Command {
     /// Chat with an LLM
-    Chat(chat::Chat),
+    Chat(chat::ChatCmd),
 
-    /// Generate a configuration file
+    /// Generate the configuration file
     Generate,
 }
 
 impl App {
     /// Initialize tracing subscriber based on verbosity
     pub fn init_tracing(&self) {
-        let level = match self.verbose {
-            0 => Level::INFO,
-            1 => Level::DEBUG,
-            2 => Level::TRACE,
-            _ => Level::TRACE,
-        };
+        let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+            let directive = match self.verbose {
+                0 => "info",
+                1 => "ullm=debug",
+                2 => "ullm=trace",
+                3 => "debug",
+                _ => "trace",
+            };
+            EnvFilter::new(directive)
+        });
 
-        FmtSubscriber::builder().with_max_level(level).init();
+        fmt()
+            .without_time()
+            .with_env_filter(filter)
+            .with_target(self.verbose != 0)
+            .init();
     }
 }
