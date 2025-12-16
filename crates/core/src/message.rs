@@ -75,15 +75,15 @@ pub struct AssistantMessage {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum Role {
     /// The user role
-    #[serde(alias = "user")]
+    #[serde(rename = "user")]
     User,
     /// The assistant role
-    #[serde(alias = "assistant")]
+    #[serde(rename = "assistant")]
     Assistant,
     /// The system role
-    #[serde(alias = "system")]
+    #[serde(rename = "system")]
     System,
     /// The tool role
-    #[serde(alias = "tool")]
+    #[serde(rename = "tool")]
     Tool,
 }

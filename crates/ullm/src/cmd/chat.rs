@@ -24,7 +24,7 @@ pub struct ChatCmd {
 
 impl ChatCmd {
     /// Run the chat command
-    pub async fn run(&self, stream_mode: bool) -> Result<()> {
+    pub async fn run(&self, stream: bool) -> Result<()> {
         let config = Config::load()?;
         let key = config
             .key
@@ -36,7 +36,7 @@ impl ChatCmd {
 
         let mut chat = provider.chat(config.config().clone());
         if let Some(msg) = &self.message {
-            Self::send(&mut chat, Message::user(msg), stream_mode).await?;
+            Self::send(&mut chat, Message::user(msg), stream).await?;
         } else {
             let stdin = std::io::stdin();
             let mut stdout = std::io::stdout();
@@ -57,15 +57,15 @@ impl ChatCmd {
                     break;
                 }
 
-                Self::send(&mut chat, Message::user(input), stream_mode).await?;
+                Self::send(&mut chat, Message::user(input), stream).await?;
             }
         }
 
         Ok(())
     }
 
-    async fn send(chat: &mut Chat<DeepSeek>, message: Message, stream_mode: bool) -> Result<()> {
-        if stream_mode {
+    async fn send(chat: &mut Chat<DeepSeek>, message: Message, stream: bool) -> Result<()> {
+        if stream {
             let mut response_content = String::new();
             {
                 let mut reasoning = false;

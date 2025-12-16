@@ -39,15 +39,26 @@ impl LLM for DeepSeek {
 
     /// Send a message to the LLM
     async fn send(&mut self, config: &Config, messages: &[ChatMessage]) -> Result<Response> {
-        self.client
+        let text = self
+            .client
             .request(Method::POST, ENDPOINT)
             .headers(self.headers.clone())
             .json(&Request::from(config).messages(messages))
             .send()
             .await?
-            .json::<Response>()
-            .await
-            .map_err(Into::into)
+            .text()
+            .await?;
+
+        serde_json::from_str(&text).map_err(Into::into)
+        // self.client
+        //     .request(Method::POST, ENDPOINT)
+        //     .headers(self.headers.clone())
+        //     .json(&Request::from(config).messages(messages))
+        //     .send()
+        //     .await?
+        //     .json::<Response>()
+        //     .await
+        //     .map_err(Into::into)
     }
 
     /// Send a message to the LLM with streaming
@@ -60,7 +71,11 @@ impl LLM for DeepSeek {
             .client
             .request(Method::POST, ENDPOINT)
             .headers(self.headers.clone())
-            .json(&Request::from(config).messages(messages).stream());
+            .json(
+                &Request::from(config)
+                    .messages(messages)
+                    .stream(config.usage),
+            );
 
         try_stream! {
             let mut stream = request.send().await?.bytes_stream();

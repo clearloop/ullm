@@ -1654,6 +1654,7 @@ dependencies = [
  "futures-util",
  "serde",
  "serde_json",
+ "tracing",
  "ullm-core",
 ]
 

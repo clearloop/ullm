@@ -47,12 +47,15 @@ pub struct FunctionCall {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum ToolChoice {
     /// Model will not call any tool
+    #[serde(rename = "none")]
     None,
 
     /// Model can pick between generating a message or calling tools
+    #[serde(rename = "auto")]
     Auto,
 
     /// Model must call one or more tools
+    #[serde(rename = "required")]
     Required,
 
     /// Model must call the specified function

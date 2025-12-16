@@ -79,8 +79,13 @@ impl Request {
     }
 
     /// Enable streaming for the request
-    pub fn stream(mut self) -> Self {
+    pub fn stream(mut self, usage: bool) -> Self {
         self.stream = true;
+        self.stream_options = if usage {
+            json!({ "include_usage": true })
+        } else {
+            Value::Null
+        };
         self
     }
 }
@@ -113,11 +118,7 @@ impl From<&Config> for Request {
                 config.stop.iter().map(|s| json!(s)).collect()
             },
             stream: false,
-            stream_options: if config.usage {
-                json!({ "include_usage": true })
-            } else {
-                Value::Null
-            },
+            stream_options: Value::Null,
             temperature: Number::from_f64(config.temperature as f64)
                 .map(Value::Number)
                 .unwrap_or(Value::Null),
