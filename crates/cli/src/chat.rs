@@ -1,15 +1,15 @@
 //! Chat command
 
 use super::Config;
-use crate::DeepSeek;
 use anyhow::Result;
 use clap::{Args, ValueEnum};
+use ullm::DeepSeek;
 use futures_util::StreamExt;
 use std::{
     fmt::{Display, Formatter},
     io::{BufRead, Write},
 };
-use ucore::{Chat, Client, LLM, Message};
+use ullm::{Chat, Client, LLM, Message};
 
 /// Chat command arguments
 #[derive(Debug, Args)]
