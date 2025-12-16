@@ -9,3 +9,10 @@ documentation.workspace = true
 keywords.workspace = true
 
 [dependencies]
+deepseek.workspace = true
+ucore.workspace = true
+
+# crates-io dependencies
+clap.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true

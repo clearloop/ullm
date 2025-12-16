@@ -1,5 +1,5 @@
 [package]
-name = "deepseek"
+name = "ullm-deepseek"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

@@ -13,6 +13,7 @@ keywords = ["rust", "library", "framework"]
 
 [workspace.dependencies]
 ucore = { path = "crates/core", package = "ullm-core" }
+deepseek = { path = "llm/deepseek", package = "ullm-deepseek" }
 
 # crates-io dependencies
 anyhow = "1"
