@@ -28,6 +28,22 @@ pub struct StreamChunk {
     pub usage: Option<crate::Usage>,
 }
 
+impl StreamChunk {
+    /// Get the content of the first choice
+    pub fn content(&self) -> Option<&str> {
+        self.choices
+            .first()
+            .and_then(|choice| choice.delta.content.as_deref())
+    }
+
+    /// Get the reasoning content of the first choice
+    pub fn reasoning_content(&self) -> Option<&str> {
+        self.choices
+            .first()
+            .and_then(|choice| choice.delta.reasoning_content.as_deref())
+    }
+}
+
 /// A completion choice in a streaming response
 #[derive(Debug, Clone, Deserialize)]
 pub struct StreamChoice {

@@ -13,6 +13,9 @@ deepseek.workspace = true
 ucore.workspace = true
 
 # crates-io dependencies
+anyhow.workspace = true
 clap.workspace = true
+futures-util.workspace = true
+tokio.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true

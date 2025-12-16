@@ -53,10 +53,18 @@ pub enum ChatMessage {
 
 impl From<Message> for ChatMessage {
     fn from(message: Message) -> Self {
-        if message.role == Role::User {
-            ChatMessage::User(message)
-        } else {
-            ChatMessage::System(message)
+        match message.role {
+            Role::User => ChatMessage::User(message),
+            Role::Assistant => ChatMessage::Assistant(AssistantMessage {
+                message,
+                prefix: false,
+                reasoning: String::new(),
+            }),
+            Role::System => ChatMessage::System(message),
+            Role::Tool => ChatMessage::Tool(ToolMessage {
+                tool: String::new(),
+                message,
+            }),
         }
     }
 }

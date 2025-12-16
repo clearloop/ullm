@@ -33,6 +33,15 @@ impl Message {
             content: content.into(),
         }
     }
+
+    /// Create a new assistant message
+    pub fn assistant(content: impl Into<String>) -> Self {
+        Self {
+            role: Role::Assistant,
+            name: String::new(),
+            content: content.into(),
+        }
+    }
 }
 
 /// A tool message in the chat
