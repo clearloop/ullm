@@ -4,7 +4,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, path::PathBuf, sync::LazyLock};
 
-const CONFIG: LazyLock<PathBuf> =
+static CONFIG: LazyLock<PathBuf> =
     LazyLock::new(|| dirs::home_dir().unwrap().join(".config/ullm.toml"));
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
