@@ -4,6 +4,7 @@ use crate::{DeepSeek, Request};
 use anyhow::Result;
 use async_stream::try_stream;
 use futures_core::Stream;
+use futures_util::StreamExt;
 use ucore::{
     Chat, ChatMessage, Client, Config, LLM, Response, StreamChunk,
     reqwest::{
@@ -62,7 +63,6 @@ impl LLM for DeepSeek {
             .json(&Request::from(config).messages(messages).stream());
 
         try_stream! {
-            use futures_util::StreamExt;
             let mut stream = request.send().await?.bytes_stream();
             while let Some(chunk) = stream.next().await {
                 let text = String::from_utf8_lossy(&chunk?).into_owned();

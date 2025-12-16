@@ -11,6 +11,7 @@ pub use {
         ResponseMessage, TopLogProb, Usage,
     },
     stream::{Delta, StreamChoice, StreamChunk},
+    template::Template,
     tool::{FunctionCall, Tool, ToolCall, ToolChoice},
 };
 
@@ -20,4 +21,5 @@ mod message;
 mod provider;
 mod response;
 mod stream;
+mod template;
 mod tool;
