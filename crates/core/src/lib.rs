@@ -6,11 +6,18 @@ pub use {
     message::{Message, Role},
     provider::LLM,
     reqwest::Client,
-    tool::Tool,
+    response::{
+        Choice, CompletionTokensDetails, FinishReason, LogProb, LogProbs, Response,
+        ResponseMessage, TopLogProb, Usage,
+    },
+    stream::{Delta, StreamChoice, StreamChunk},
+    tool::{FunctionCall, Tool, ToolCall},
 };
 
 mod chat;
 mod config;
 mod message;
 mod provider;
+mod response;
+mod stream;
 mod tool;

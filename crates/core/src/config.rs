@@ -36,6 +36,6 @@ pub struct Config {
     /// The number of max tokens to generate
     pub tokens: usize,
 
-    /// Whether to return the usage information
+    /// Whether to return the usage information in stream mode
     pub usage: bool,
 }
