@@ -23,9 +23,6 @@ pub struct Config {
     /// The presence penalty of the model
     pub presence: i8,
 
-    /// Whether to stream the response
-    pub stream: bool,
-
     /// The temperature of the model
     pub temperature: f32,
 
