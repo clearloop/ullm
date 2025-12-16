@@ -84,6 +84,8 @@ name = "deepseek"
 version = "0.0.1"
 dependencies = [
  "anyhow",
+ "serde",
+ "serde_json",
  "ullm-core",
 ]
 

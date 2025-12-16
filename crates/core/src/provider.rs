@@ -6,11 +6,8 @@ use reqwest::Client;
 
 /// A trait for LLM providers
 pub trait LLM: Sized {
-    /// The model of the LLM
-    type Model;
-
     /// Create a new LLM provider
-    fn new(client: Client, key: &str, model: Self::Model) -> Result<Self>
+    fn new(client: Client, key: &str) -> Result<Self>
     where
         Self: Sized;
 
