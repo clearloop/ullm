@@ -1,7 +1,7 @@
 //! Chat abstractions for the unified LLM Interfaces
 
 use crate::{
-    Config, LLM, Response, Role,
+    LLM, Response, Role,
     message::{AssistantMessage, Message, ToolMessage},
 };
 use anyhow::Result;
@@ -10,7 +10,7 @@ use serde::Serialize;
 /// A chat for the LLM
 pub struct Chat<P: LLM> {
     /// The chat configuration
-    pub config: Config,
+    pub config: P::ChatConfig,
 
     /// Chat history in memory
     pub messages: Vec<ChatMessage>,
@@ -20,15 +20,6 @@ pub struct Chat<P: LLM> {
 }
 
 impl<P: LLM> Chat<P> {
-    /// Create a new chat
-    pub fn new(provider: P, config: Config) -> Self {
-        Chat {
-            config,
-            messages: Vec::new(),
-            provider,
-        }
-    }
-
     /// Send a message to the LLM
     pub async fn send(&mut self, message: Message) -> Result<Response> {
         self.messages.push(message.into());

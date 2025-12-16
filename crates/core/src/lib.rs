@@ -11,7 +11,7 @@ pub use {
         ResponseMessage, TopLogProb, Usage,
     },
     stream::{Delta, StreamChoice, StreamChunk},
-    tool::{FunctionCall, Tool, ToolCall},
+    tool::{FunctionCall, Tool, ToolCall, ToolChoice},
 };
 
 mod chat;

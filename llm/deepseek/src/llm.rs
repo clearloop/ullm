@@ -13,6 +13,9 @@ use ucore::{
 const ENDPOINT: &str = "https://api.deepseek.com/chat/completions";
 
 impl LLM for DeepSeek {
+    /// The chat configuration.
+    type ChatConfig = Config;
+
     /// Create a new LLM provider
     fn new(client: Client, key: &str) -> Result<Self> {
         let mut headers = HeaderMap::new();
@@ -36,7 +39,7 @@ impl LLM for DeepSeek {
         self.client
             .request(Method::POST, ENDPOINT)
             .headers(self.headers.clone())
-            .json(&Request::new(config, messages, false))
+            .json(&Request::from(config).messages(messages))
             .send()
             .await?
             .json::<Response>()
