@@ -13,11 +13,15 @@ keywords = ["rust", "library", "framework"]
 
 [workspace.dependencies]
 ucore = { path = "crates/core", package = "ullm-core" }
+deepseek = { path = "llm/deepseek", package = "ullm-deepseek" }
 
 # crates-io dependencies
 anyhow = "1"
+async-stream = "0.3"
 bytes = "1.11.0"
+clap = { version = "4.5", features = ["derive"] }
 derive_more = { version = "2.1", features = ["display", "try_from"] }
+dirs = "6.0.0"
 futures-core = "0.3"
 futures-util = "0.3"
 reqwest = { version = "0.12", features = ["json", "stream"] }
@@ -25,3 +29,6 @@ schemars = "1.1.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+toml = "0.9.8"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
