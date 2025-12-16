@@ -1,6 +1,6 @@
 //! Provider abstractions for the unified LLM Interfaces
 
-use crate::{ChatMessage, Config, Response};
+use crate::{Chat, ChatMessage, Config, Response};
 use anyhow::Result;
 use reqwest::Client;
 
@@ -10,6 +10,9 @@ pub trait LLM: Sized {
     fn new(client: Client, key: &str) -> Result<Self>
     where
         Self: Sized;
+
+    /// Create a new chat
+    fn chat(&self, config: Config) -> Chat<Self>;
 
     /// Send a message to the LLM
     fn send(

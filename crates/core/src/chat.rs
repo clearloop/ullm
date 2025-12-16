@@ -20,6 +20,15 @@ pub struct Chat<P: LLM> {
 }
 
 impl<P: LLM> Chat<P> {
+    /// Create a new chat
+    pub fn new(provider: P, config: Config) -> Self {
+        Chat {
+            config,
+            messages: Vec::new(),
+            provider,
+        }
+    }
+
     /// Send a message to the LLM
     pub async fn send(&mut self, message: Message) -> Result<Response> {
         self.messages.push(message.into());

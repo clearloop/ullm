@@ -3,7 +3,7 @@
 use crate::{DeepSeek, Request};
 use anyhow::Result;
 use ucore::{
-    ChatMessage, Client, Config, LLM, Response,
+    Chat, ChatMessage, Client, Config, LLM, Response,
     reqwest::{
         Method,
         header::{self, HeaderMap},
@@ -20,6 +20,15 @@ impl LLM for DeepSeek {
         headers.insert(header::ACCEPT, "application/json".parse()?);
         headers.insert(header::AUTHORIZATION, format!("Bearer {}", key).parse()?);
         Ok(Self { client, headers })
+    }
+
+    /// Create a new chat
+    fn chat(&self, config: Config) -> Chat<Self> {
+        Chat {
+            config,
+            messages: Vec::new(),
+            provider: self.clone(),
+        }
     }
 
     /// Send a message to the LLM
