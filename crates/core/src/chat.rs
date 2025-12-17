@@ -5,7 +5,6 @@ use crate::{
     message::{AssistantMessage, Message, ToolMessage},
 };
 use anyhow::Result;
-use async_stream::try_stream;
 use futures_core::Stream;
 use futures_util::StreamExt;
 use serde::Serialize;
@@ -81,7 +80,7 @@ impl<P: LLM, A: Agent> Chat<P, A> {
             };
 
             let result = self.agent.dispatch(tool_calls).await?;
-            self.messages.push(result.into());
+            self.messages.extend(result.into_iter().map(Into::into));
         }
     }
 
@@ -95,17 +94,22 @@ impl<P: LLM, A: Agent> Chat<P, A> {
             .with_tool_choice(self.agent.filter(message.content.as_str()));
         self.messages.push(message.into());
 
-        try_stream! {
+        async_stream::try_stream! {
             loop {
                 let messages = self.messages.clone();
                 let inner = self.provider.stream(config.clone(), &messages, self.usage);
                 futures_util::pin_mut!(inner);
 
                 let mut tool_calls = None;
+                let mut message = String::new();
                 while let Some(chunk) = inner.next().await {
                     let chunk = chunk?;
                     if let Some(calls) = chunk.tool_calls() {
                         tool_calls = Some(calls.to_vec());
+                    }
+
+                    if let Some(content) = chunk.content() {
+                        message.push_str(content);
                     }
 
                     yield self.agent.chunk(&chunk).await?;
@@ -113,14 +117,18 @@ impl<P: LLM, A: Agent> Chat<P, A> {
                         match reason {
                             FinishReason::Stop => return,
                             FinishReason::ToolCalls => break,
-                            _ => {}
+                            reason => Err(anyhow::anyhow!("unexpected finish reason: {reason:?}"))?,
                         }
                     }
                 }
 
+                if !message.is_empty() {
+                    self.messages.push(Message::assistant(&message).into());
+                }
+
                 if let Some(calls) = tool_calls {
                     let result = self.agent.dispatch(&calls).await?;
-                    self.messages.push(result.into());
+                    self.messages.extend(result.into_iter().map(Into::into));
                 } else {
                     break;
                 }
