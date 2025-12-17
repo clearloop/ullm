@@ -19,8 +19,6 @@ impl LLM for DeepSeek {
     /// The chat configuration.
     type ChatConfig = Config;
 
-    const EMBEDDED_SYSTEM_PROMPT: bool = true;
-
     /// Create a new LLM provider
     fn new(client: Client, key: &str) -> Result<Self> {
         let mut headers = HeaderMap::new();

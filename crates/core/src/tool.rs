@@ -81,3 +81,9 @@ impl ToolChoice {
         }
     }
 }
+
+impl From<&str> for ToolChoice {
+    fn from(value: &str) -> Self {
+        ToolChoice::function(value)
+    }
+}
