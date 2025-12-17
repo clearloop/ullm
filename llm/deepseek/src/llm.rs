@@ -6,7 +6,7 @@ use async_stream::try_stream;
 use futures_core::Stream;
 use futures_util::StreamExt;
 use ucore::{
-    Chat, ChatMessage, Client, Config, LLM, Response, StreamChunk,
+    Chat, ChatMessage, Client, Config, LLM, Message, Response, StreamChunk, Template,
     reqwest::{
         Method,
         header::{self, HeaderMap},
@@ -18,6 +18,11 @@ const ENDPOINT: &str = "https://api.deepseek.com/chat/completions";
 impl LLM for DeepSeek {
     /// The chat configuration.
     type ChatConfig = Config;
+
+    /// The system prompt for the LLM
+    fn system(template: Template) -> Message {
+        template.embedded()
+    }
 
     /// Create a new LLM provider
     fn new(client: Client, key: &str) -> Result<Self> {

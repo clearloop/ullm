@@ -18,7 +18,7 @@ pub struct Template {
 
 impl Template {
     /// Create a new message from the template
-    pub fn message(&self) -> Message {
+    pub fn embedded(&self) -> Message {
         Message {
             content: format!(
                 r#"{}
