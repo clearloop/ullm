@@ -1,6 +1,7 @@
 //! Turbofish Agent library
 
-use crate::{Tool, ToolChoice};
+use crate::{Tool, ToolCall, ToolChoice, message::ToolMessage};
+use anyhow::Result;
 
 /// A trait for turbofish agents
 ///
@@ -15,5 +16,10 @@ pub trait Agent {
     /// Filter the messages to match required tools for the agent
     fn filter(&self, _message: &str) -> ToolChoice {
         ToolChoice::Auto
+    }
+
+    /// Dispatch a tool call
+    fn dispatch(&self, _tool: &ToolCall) -> impl Future<Output = Result<ToolMessage>> {
+        async move { anyhow::bail!("no tools available") }
     }
 }

@@ -1,7 +1,7 @@
 //! Chat abstractions for the unified LLM Interfaces
 
 use crate::{
-    Agent, Config, General, LLM, Response, Role, StreamChunk, Tool,
+    Agent, Config, General, LLM, Response, Role, StreamChunk,
     message::{AssistantMessage, Message, ToolMessage},
 };
 use anyhow::Result;
@@ -42,12 +42,7 @@ impl<P: LLM> Chat<P> {
             .into_iter()
             .chain(messages)
             .collect();
-        self
-    }
-
-    /// Add tools to the chat
-    pub fn tools(mut self, tools: Vec<Tool>) -> Self {
-        self.config = self.config.with_tools(tools);
+        self.config = self.config.with_tools(A::TOOLS);
         self
     }
 

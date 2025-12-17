@@ -1,25 +1,7 @@
 //! Tool abstractions for the unified LLM Interfaces
 
-use crate::message::ToolMessage;
-use anyhow::Result;
 use schemars::Schema;
 use serde::{Deserialize, Serialize};
-
-/// A trait for dispatching tool calls
-pub trait Tools {
-    const TOOLS: Vec<Tool>;
-
-    /// Dispatch a tool call
-    fn dispatch(&self, tool: &ToolCall) -> impl Future<Output = Result<ToolMessage>>;
-}
-
-impl Tools for () {
-    const TOOLS: Vec<Tool> = Vec::new();
-
-    async fn dispatch(&self, _tool: &ToolCall) -> Result<ToolMessage> {
-        anyhow::bail!("no tools available");
-    }
-}
 
 /// A tool for the LLM
 #[derive(Debug, Clone, Deserialize, Serialize)]
