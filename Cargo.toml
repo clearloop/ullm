@@ -12,7 +12,9 @@ documentation = "https://ullm.docs.rs"
 keywords = ["rust", "library", "framework"]
 
 [workspace.dependencies]
+ullm = { path = "crates/ullm" }
 ucore = { path = "crates/core", package = "ullm-core" }
+ucli = { path = "crates/cli", package = "ullm-cli" }
 deepseek = { path = "llm/deepseek", package = "ullm-deepseek" }
 
 # crates-io dependencies
