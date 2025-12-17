@@ -1,6 +1,6 @@
 //! Provider abstractions for the unified LLM Interfaces
 
-use crate::{Agent, Chat, ChatMessage, Config, Message, Response, StreamChunk};
+use crate::{Chat, ChatMessage, Config, Response, StreamChunk};
 use anyhow::Result;
 use futures_core::Stream;
 use reqwest::Client;
@@ -16,10 +16,10 @@ pub trait LLM: Sized + Clone {
         Self: Sized;
 
     /// Create a new chat
-    fn chat<A: Agent>(&self, config: Config) -> Chat<Self> {
+    fn chat(&self, config: Config) -> Chat<Self> {
         Chat {
             config: config.into(),
-            messages: vec![Message::system(A::SYSTEM_PROMPT).into()],
+            messages: vec![],
             provider: self.clone(),
         }
     }

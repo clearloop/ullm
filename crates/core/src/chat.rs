@@ -1,7 +1,7 @@
 //! Chat abstractions for the unified LLM Interfaces
 
 use crate::{
-    LLM, Response, Role, StreamChunk,
+    Agent, LLM, Response, Role, StreamChunk,
     message::{AssistantMessage, Message, ToolMessage},
 };
 use anyhow::Result;
@@ -22,6 +22,16 @@ pub struct Chat<P: LLM> {
 }
 
 impl<P: LLM> Chat<P> {
+    /// Add the system prompt to the chat
+    pub fn system<A: Agent>(mut self) -> Self {
+        let messages = self.messages;
+        self.messages = vec![Message::system(A::SYSTEM_PROMPT).into()]
+            .into_iter()
+            .chain(messages)
+            .collect();
+        self
+    }
+
     /// Send a message to the LLM
     pub async fn send(&mut self, message: Message) -> Result<Response> {
         self.messages.push(message.into());
@@ -29,7 +39,10 @@ impl<P: LLM> Chat<P> {
     }
 
     /// Send a message to the LLM with streaming
-    pub fn stream(&mut self, message: Message) -> impl Stream<Item = Result<StreamChunk>> + use<'_, P> {
+    pub fn stream(
+        &mut self,
+        message: Message,
+    ) -> impl Stream<Item = Result<StreamChunk>> + use<'_, P> {
         self.messages.push(message.into());
         self.provider.stream(&self.config, &self.messages)
     }
