@@ -4,7 +4,7 @@ use crate::{Tool, ToolChoice};
 use serde::{Deserialize, Serialize};
 
 /// LLM configuration
-pub trait Config: From<General> + Sized {
+pub trait Config: From<General> + Sized + Clone {
     /// Create a new configuration with tools
     fn with_tools(self, tools: Vec<Tool>) -> Self;
 

@@ -22,7 +22,7 @@ pub trait Agent: Clone {
     }
 
     /// Dispatch a tool call
-    fn dispatch(&self, _tool: &ToolCall) -> impl Future<Output = Result<ToolMessage>> {
+    fn dispatch(&self, _tool: &[ToolCall]) -> impl Future<Output = Result<ToolMessage>> {
         async move { anyhow::bail!("no tools available") }
     }
 

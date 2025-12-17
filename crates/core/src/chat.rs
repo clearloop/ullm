@@ -1,10 +1,11 @@
 //! Chat abstractions for the unified LLM Interfaces
 
 use crate::{
-    Agent, Config, General, LLM, Response, Role,
+    Agent, Config, FinishReason, General, LLM, Response, Role,
     message::{AssistantMessage, Message, ToolMessage},
 };
 use anyhow::Result;
+use async_stream::try_stream;
 use futures_core::Stream;
 use futures_util::StreamExt;
 use serde::Serialize;
@@ -72,7 +73,16 @@ impl<P: LLM, A: Agent> Chat<P, A> {
             .config
             .with_tool_choice(self.agent.filter(message.content.as_str()));
         self.messages.push(message.into());
-        self.provider.send(&config, &self.messages).await
+
+        loop {
+            let response = self.provider.send(&config, &self.messages).await?;
+            let Some(tool_calls) = response.tool_calls() else {
+                return Ok(response);
+            };
+
+            let result = self.agent.dispatch(tool_calls).await?;
+            self.messages.push(result.into());
+        }
     }
 
     /// Send a message to the LLM with streaming
@@ -84,18 +94,38 @@ impl<P: LLM, A: Agent> Chat<P, A> {
             .config
             .with_tool_choice(self.agent.filter(message.content.as_str()));
         self.messages.push(message.into());
-        let agent = self.agent.clone();
-        self.provider
-            .stream(config, &self.messages, self.usage)
-            .then(move |chunk| {
-                let agent = agent.clone();
-                async move {
-                    match chunk {
-                        Ok(c) => agent.chunk(&c).await,
-                        Err(e) => Err(e),
+
+        try_stream! {
+            loop {
+                let messages = self.messages.clone();
+                let inner = self.provider.stream(config.clone(), &messages, self.usage);
+                futures_util::pin_mut!(inner);
+
+                let mut tool_calls = None;
+                while let Some(chunk) = inner.next().await {
+                    let chunk = chunk?;
+                    if let Some(calls) = chunk.tool_calls() {
+                        tool_calls = Some(calls.to_vec());
+                    }
+
+                    yield self.agent.chunk(&chunk).await?;
+                    if let Some(reason) = chunk.reason() {
+                        match reason {
+                            FinishReason::Stop => return,
+                            FinishReason::ToolCalls => break,
+                            _ => {}
+                        }
                     }
                 }
-            })
+
+                if let Some(calls) = tool_calls {
+                    let result = self.agent.dispatch(&calls).await?;
+                    self.messages.push(result.into());
+                } else {
+                    break;
+                }
+            }
+        }
     }
 }
 
@@ -131,5 +161,11 @@ impl From<Message> for ChatMessage {
                 message,
             }),
         }
+    }
+}
+
+impl From<ToolMessage> for ChatMessage {
+    fn from(message: ToolMessage) -> Self {
+        ChatMessage::Tool(message)
     }
 }

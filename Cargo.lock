@@ -1630,6 +1630,7 @@ name = "ullm-core"
 version = "0.0.1"
 dependencies = [
  "anyhow",
+ "async-stream",
  "derive_more",
  "futures-core",
  "futures-util",

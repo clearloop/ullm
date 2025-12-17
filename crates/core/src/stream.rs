@@ -1,6 +1,6 @@
 //! Streaming response abstractions for the unified LLM Interfaces
 
-use crate::{Role, tool::ToolCall};
+use crate::{FinishReason, Role, tool::ToolCall};
 use serde::Deserialize;
 
 /// A streaming chat completion chunk
@@ -48,6 +48,13 @@ impl StreamChunk {
         self.choices
             .first()
             .and_then(|choice| choice.delta.tool_calls.as_deref())
+    }
+
+    /// Get the reason the model stopped generating
+    pub fn reason(&self) -> Option<&FinishReason> {
+        self.choices
+            .first()
+            .and_then(|choice| choice.finish_reason.as_ref())
     }
 }
 
