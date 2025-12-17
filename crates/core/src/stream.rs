@@ -42,6 +42,13 @@ impl StreamChunk {
             .first()
             .and_then(|choice| choice.delta.reasoning_content.as_deref())
     }
+
+    /// Get the tool calls of the first choice
+    pub fn tool_calls(&self) -> Option<&[ToolCall]> {
+        self.choices
+            .first()
+            .and_then(|choice| choice.delta.tool_calls.as_deref())
+    }
 }
 
 /// A completion choice in a streaming response

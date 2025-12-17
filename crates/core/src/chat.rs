@@ -1,7 +1,7 @@
 //! Chat abstractions for the unified LLM Interfaces
 
 use crate::{
-    Agent, LLM, Response, Role, StreamChunk,
+    Agent, Config, LLM, Response, Role, StreamChunk, Tool,
     message::{AssistantMessage, Message, ToolMessage},
 };
 use anyhow::Result;
@@ -17,11 +17,24 @@ pub struct Chat<P: LLM> {
     /// Chat history in memory
     pub messages: Vec<ChatMessage>,
 
+    /// The tools available to the chat
+    pub tools: Vec<Tool>,
+
     /// The LLM provider
-    pub provider: P,
+    provider: P,
 }
 
 impl<P: LLM> Chat<P> {
+    /// Create a new chat
+    pub fn new(config: Config, provider: P) -> Self {
+        Self {
+            config: config.into(),
+            messages: vec![],
+            provider,
+            tools: vec![],
+        }
+    }
+
     /// Add the system prompt to the chat
     pub fn system<A: Agent>(mut self) -> Self {
         let messages = self.messages;
