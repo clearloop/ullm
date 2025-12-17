@@ -12,7 +12,7 @@ pub use {
         ResponseMessage, TopLogProb, Usage,
     },
     stream::{Delta, StreamChoice, StreamChunk},
-    tool::{FunctionCall, Tool, ToolCall, ToolChoice},
+    tool::{FunctionCall, Tool, ToolCall, ToolChoice, Tools},
 };
 
 mod agent;

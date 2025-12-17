@@ -3,12 +3,12 @@
 use super::Config;
 use anyhow::Result;
 use clap::{Args, ValueEnum};
-use ullm::DeepSeek;
 use futures_util::StreamExt;
 use std::{
     fmt::{Display, Formatter},
     io::{BufRead, Write},
 };
+use ullm::DeepSeek;
 use ullm::{Chat, Client, LLM, Message};
 
 /// Chat command arguments
@@ -64,7 +64,7 @@ impl ChatCmd {
         Ok(())
     }
 
-    async fn send(chat: &mut Chat<DeepSeek>, message: Message, stream: bool) -> Result<()> {
+    async fn send(chat: &mut Chat<DeepSeek, ()>, message: Message, stream: bool) -> Result<()> {
         if stream {
             let mut response_content = String::new();
             {

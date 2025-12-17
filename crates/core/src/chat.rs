@@ -1,7 +1,7 @@
 //! Chat abstractions for the unified LLM Interfaces
 
 use crate::{
-    Agent, Config, LLM, Response, Role, StreamChunk, Tool,
+    Agent, Config, LLM, Response, Role, StreamChunk, Tools,
     message::{AssistantMessage, Message, ToolMessage},
 };
 use anyhow::Result;
@@ -10,7 +10,7 @@ use serde::Serialize;
 
 /// A chat for the LLM
 #[derive(Clone)]
-pub struct Chat<P: LLM> {
+pub struct Chat<P: LLM, T: Tools> {
     /// The chat configuration
     pub config: P::ChatConfig,
 
@@ -18,23 +18,25 @@ pub struct Chat<P: LLM> {
     pub messages: Vec<ChatMessage>,
 
     /// The tools available to the chat
-    pub tools: Vec<Tool>,
+    pub tools: T,
 
     /// The LLM provider
     provider: P,
 }
 
-impl<P: LLM> Chat<P> {
+impl<P: LLM> Chat<P, ()> {
     /// Create a new chat
     pub fn new(config: Config, provider: P) -> Self {
         Self {
             config: config.into(),
             messages: vec![],
             provider,
-            tools: vec![],
+            tools: (),
         }
     }
+}
 
+impl<P: LLM, T: Tools> Chat<P, T> {
     /// Add the system prompt to the chat
     pub fn system<A: Agent>(mut self) -> Self {
         let messages = self.messages;
@@ -55,7 +57,7 @@ impl<P: LLM> Chat<P> {
     pub fn stream(
         &mut self,
         message: Message,
-    ) -> impl Stream<Item = Result<StreamChunk>> + use<'_, P> {
+    ) -> impl Stream<Item = Result<StreamChunk>> + use<'_, P, T> {
         self.messages.push(message.into());
         self.provider.stream(&self.config, &self.messages)
     }

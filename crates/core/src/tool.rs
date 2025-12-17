@@ -1,7 +1,25 @@
 //! Tool abstractions for the unified LLM Interfaces
 
+use crate::message::ToolMessage;
+use anyhow::Result;
 use schemars::Schema;
 use serde::{Deserialize, Serialize};
+
+/// A trait for dispatching tool calls
+pub trait Tools {
+    const TOOLS: Vec<Tool>;
+
+    /// Dispatch a tool call
+    fn dispatch(&self, tool: &ToolCall) -> impl Future<Output = Result<ToolMessage>>;
+}
+
+impl Tools for () {
+    const TOOLS: Vec<Tool> = Vec::new();
+
+    async fn dispatch(&self, _tool: &ToolCall) -> Result<ToolMessage> {
+        anyhow::bail!("no tools available");
+    }
+}
 
 /// A tool for the LLM
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -72,18 +90,11 @@ pub struct ToolChoiceFunction {
     pub name: String,
 }
 
-impl ToolChoice {
-    /// Create a tool choice for a specific function
-    pub fn function(name: impl Into<String>) -> Self {
-        ToolChoice::Function {
-            r#type: "function".into(),
-            function: ToolChoiceFunction { name: name.into() },
-        }
-    }
-}
-
 impl From<&str> for ToolChoice {
     fn from(value: &str) -> Self {
-        ToolChoice::function(value)
+        ToolChoice::Function {
+            r#type: "function".into(),
+            function: ToolChoiceFunction { name: value.into() },
+        }
     }
 }

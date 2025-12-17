@@ -16,7 +16,7 @@ pub trait LLM: Sized + Clone {
         Self: Sized;
 
     /// Create a new chat
-    fn chat(&self, config: Config) -> Chat<Self> {
+    fn chat(&self, config: Config) -> Chat<Self, ()> {
         Chat::new(config, self.clone())
     }
 
