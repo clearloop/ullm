@@ -55,7 +55,7 @@ impl LLM for DeepSeek {
     /// Send a message to the LLM with streaming
     fn stream(
         &mut self,
-        req: &Request,
+        req: Request,
         messages: &[ChatMessage],
         usage: bool,
     ) -> impl Stream<Item = Result<StreamChunk>> {

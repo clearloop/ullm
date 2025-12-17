@@ -14,5 +14,6 @@ derive_more.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 futures-core.workspace = true
+futures-util.workspace = true
 reqwest.workspace = true
 schemars.workspace = true

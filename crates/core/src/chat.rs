@@ -1,16 +1,17 @@
 //! Chat abstractions for the unified LLM Interfaces
 
 use crate::{
-    Agent, Config, General, LLM, Response, Role, StreamChunk,
+    Agent, Config, General, LLM, Response, Role,
     message::{AssistantMessage, Message, ToolMessage},
 };
 use anyhow::Result;
 use futures_core::Stream;
+use futures_util::StreamExt;
 use serde::Serialize;
 
 /// A chat for the LLM
 #[derive(Clone)]
-pub struct Chat<P: LLM> {
+pub struct Chat<P: LLM, A: Agent> {
     /// The chat configuration
     pub config: P::ChatConfig,
 
@@ -20,46 +21,81 @@ pub struct Chat<P: LLM> {
     /// The LLM provider
     provider: P,
 
+    /// The agent
+    agent: A,
+
     /// Whether to return the usage information in stream mode
     usage: bool,
 }
 
-impl<P: LLM> Chat<P> {
+impl<P: LLM> Chat<P, ()> {
     /// Create a new chat
     pub fn new(config: General, provider: P) -> Self {
         Self {
             messages: vec![],
             provider,
             usage: config.usage,
+            agent: (),
             config: config.into(),
         }
     }
+}
 
+impl<P: LLM, A: Agent> Chat<P, A> {
     /// Add the system prompt to the chat
-    pub fn system<A: Agent>(mut self) -> Self {
-        let messages = self.messages;
-        self.messages = vec![Message::system(A::SYSTEM_PROMPT).into()]
-            .into_iter()
-            .chain(messages)
-            .collect();
+    pub fn system<B: Agent>(mut self, agent: B) -> Chat<P, B> {
+        let mut messages = self.messages;
+        if messages.is_empty() {
+            messages.push(Message::system(A::SYSTEM_PROMPT).into());
+        } else if let Some(ChatMessage::System(_)) = messages.first() {
+            messages.insert(0, Message::system(A::SYSTEM_PROMPT).into());
+        } else {
+            messages = vec![Message::system(A::SYSTEM_PROMPT).into()]
+                .into_iter()
+                .chain(messages)
+                .collect();
+        }
+
         self.config = self.config.with_tools(A::TOOLS);
-        self
+        Chat {
+            messages,
+            provider: self.provider,
+            usage: self.usage,
+            agent,
+            config: self.config,
+        }
     }
 
     /// Send a message to the LLM
     pub async fn send(&mut self, message: Message) -> Result<Response> {
+        let config = self
+            .config
+            .with_tool_choice(self.agent.filter(message.content.as_str()));
         self.messages.push(message.into());
-        self.provider.send(&self.config, &self.messages).await
+        self.provider.send(&config, &self.messages).await
     }
 
     /// Send a message to the LLM with streaming
     pub fn stream(
         &mut self,
         message: Message,
-    ) -> impl Stream<Item = Result<StreamChunk>> + use<'_, P> {
+    ) -> impl Stream<Item = Result<A::Chunk>> + use<'_, P, A> {
+        let config = self
+            .config
+            .with_tool_choice(self.agent.filter(message.content.as_str()));
         self.messages.push(message.into());
+        let agent = self.agent.clone();
         self.provider
-            .stream(&self.config, &self.messages, self.usage)
+            .stream(config, &self.messages, self.usage)
+            .then(move |chunk| {
+                let agent = agent.clone();
+                async move {
+                    match chunk {
+                        Ok(c) => agent.chunk(&c).await,
+                        Err(e) => Err(e),
+                    }
+                }
+            })
     }
 }
 

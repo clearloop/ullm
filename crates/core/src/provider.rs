@@ -16,7 +16,7 @@ pub trait LLM: Sized + Clone {
         Self: Sized;
 
     /// Create a new chat
-    fn chat(&self, config: General) -> Chat<Self> {
+    fn chat(&self, config: General) -> Chat<Self, ()> {
         Chat::new(config, self.clone())
     }
 
@@ -30,7 +30,7 @@ pub trait LLM: Sized + Clone {
     /// Send a message to the LLM with streaming
     fn stream(
         &mut self,
-        config: &Self::ChatConfig,
+        config: Self::ChatConfig,
         messages: &[ChatMessage],
         usage: bool,
     ) -> impl Stream<Item = Result<StreamChunk>>;

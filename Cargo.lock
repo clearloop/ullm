@@ -1632,6 +1632,7 @@ dependencies = [
  "anyhow",
  "derive_more",
  "futures-core",
+ "futures-util",
  "reqwest",
  "schemars",
  "serde",

@@ -1,12 +1,15 @@
 //! Turbofish Agent library
 
-use crate::{Tool, ToolCall, ToolChoice, message::ToolMessage};
+use crate::{StreamChunk, Tool, ToolCall, ToolChoice, message::ToolMessage};
 use anyhow::Result;
 
 /// A trait for turbofish agents
 ///
 /// TODO: add schemar for request and response
-pub trait Agent {
+pub trait Agent: Clone {
+    /// The parsed chunk from [StreamChunk]
+    type Chunk;
+
     /// The system prompt for the agent
     const SYSTEM_PROMPT: &str;
 
@@ -21,5 +24,18 @@ pub trait Agent {
     /// Dispatch a tool call
     fn dispatch(&self, _tool: &ToolCall) -> impl Future<Output = Result<ToolMessage>> {
         async move { anyhow::bail!("no tools available") }
+    }
+
+    /// Parse a chunk from [StreamChunk]
+    fn chunk(&self, chunk: &StreamChunk) -> impl Future<Output = Result<Self::Chunk>>;
+}
+
+impl Agent for () {
+    type Chunk = StreamChunk;
+
+    const SYSTEM_PROMPT: &str = "You are a helpful assistant.";
+
+    async fn chunk(&self, chunk: &StreamChunk) -> Result<Self::Chunk> {
+        Ok(chunk.clone())
     }
 }
