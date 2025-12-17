@@ -1,6 +1,6 @@
 //! Turbofish Agent library
 
-use crate::{StreamChunk, Tool, ToolCall, ToolChoice, message::ToolMessage};
+use crate::{Message, StreamChunk, Tool, ToolCall, ToolChoice, message::ToolMessage};
 use anyhow::Result;
 
 /// A trait for turbofish agents
@@ -21,9 +21,20 @@ pub trait Agent: Clone {
         ToolChoice::Auto
     }
 
-    /// Dispatch a tool call
-    fn dispatch(&self, _tool: &[ToolCall]) -> impl Future<Output = Result<Vec<ToolMessage>>> {
-        async move { anyhow::bail!("no tools available") }
+    /// Dispatch tool calls
+    fn dispatch(&self, tools: &[ToolCall]) -> impl Future<Output = Vec<ToolMessage>> {
+        async move {
+            tools
+                .iter()
+                .map(|tool| ToolMessage {
+                    tool: tool.id.clone(),
+                    message: Message::tool(format!(
+                        "function {} not available",
+                        tool.function.name
+                    )),
+                })
+                .collect()
+        }
     }
 
     /// Parse a chunk from [StreamChunk]

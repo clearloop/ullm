@@ -9,6 +9,8 @@ use futures_core::Stream;
 use futures_util::StreamExt;
 use serde::Serialize;
 
+const MAX_TOOL_CALLS: usize = 16;
+
 /// A chat for the LLM
 #[derive(Clone)]
 pub struct Chat<P: LLM, A: Agent> {
@@ -73,15 +75,17 @@ impl<P: LLM, A: Agent> Chat<P, A> {
             .with_tool_choice(self.agent.filter(message.content.as_str()));
         self.messages.push(message.into());
 
-        loop {
+        for _ in 0..MAX_TOOL_CALLS {
             let response = self.provider.send(&config, &self.messages).await?;
             let Some(tool_calls) = response.tool_calls() else {
                 return Ok(response);
             };
 
-            let result = self.agent.dispatch(tool_calls).await?;
+            let result = self.agent.dispatch(tool_calls).await;
             self.messages.extend(result.into_iter().map(Into::into));
         }
+
+        anyhow::bail!("max tool calls reached");
     }
 
     /// Send a message to the LLM with streaming
@@ -95,7 +99,7 @@ impl<P: LLM, A: Agent> Chat<P, A> {
         self.messages.push(message.into());
 
         async_stream::try_stream! {
-            loop {
+            for _ in 0..MAX_TOOL_CALLS {
                 let messages = self.messages.clone();
                 let inner = self.provider.stream(config.clone(), &messages, self.usage);
                 futures_util::pin_mut!(inner);
@@ -127,12 +131,14 @@ impl<P: LLM, A: Agent> Chat<P, A> {
                 }
 
                 if let Some(calls) = tool_calls {
-                    let result = self.agent.dispatch(&calls).await?;
+                    let result = self.agent.dispatch(&calls).await;
                     self.messages.extend(result.into_iter().map(Into::into));
                 } else {
                     break;
                 }
             }
+
+            Err(anyhow::anyhow!("max tool calls reached"))?;
         }
     }
 }
