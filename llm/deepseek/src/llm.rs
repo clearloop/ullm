@@ -6,7 +6,7 @@ use async_stream::try_stream;
 use futures_core::Stream;
 use futures_util::StreamExt;
 use ucore::{
-    Chat, ChatMessage, Client, Config, LLM, Message, Response, StreamChunk, Template,
+    ChatMessage, Client, Config, LLM, Response, StreamChunk,
     reqwest::{
         Method,
         header::{self, HeaderMap},
@@ -19,10 +19,7 @@ impl LLM for DeepSeek {
     /// The chat configuration.
     type ChatConfig = Config;
 
-    /// The system prompt for the LLM
-    fn system(template: Template) -> Message {
-        template.embedded()
-    }
+    const EMBEDDED_SYSTEM_PROMPT: bool = true;
 
     /// Create a new LLM provider
     fn new(client: Client, key: &str) -> Result<Self> {
@@ -31,15 +28,6 @@ impl LLM for DeepSeek {
         headers.insert(header::ACCEPT, "application/json".parse()?);
         headers.insert(header::AUTHORIZATION, format!("Bearer {}", key).parse()?);
         Ok(Self { client, headers })
-    }
-
-    /// Create a new chat
-    fn chat(&self, config: Config) -> Chat<Self> {
-        Chat {
-            config,
-            messages: Vec::new(),
-            provider: self.clone(),
-        }
     }
 
     /// Send a message to the LLM
