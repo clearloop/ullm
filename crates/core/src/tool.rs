@@ -62,7 +62,7 @@ pub struct FunctionCall {
 }
 
 /// Controls which tool is called by the model
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub enum ToolChoice {
     /// Model will not call any tool
     #[serde(rename = "none")]
@@ -70,6 +70,7 @@ pub enum ToolChoice {
 
     /// Model can pick between generating a message or calling tools
     #[serde(rename = "auto")]
+    #[default]
     Auto,
 
     /// Model must call one or more tools

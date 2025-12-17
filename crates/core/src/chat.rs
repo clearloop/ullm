@@ -1,7 +1,7 @@
 //! Chat abstractions for the unified LLM Interfaces
 
 use crate::{
-    Agent, Config, LLM, Response, Role, StreamChunk, Tools,
+    Agent, Config, General, LLM, Response, Role, StreamChunk, Tool,
     message::{AssistantMessage, Message, ToolMessage},
 };
 use anyhow::Result;
@@ -10,33 +10,31 @@ use serde::Serialize;
 
 /// A chat for the LLM
 #[derive(Clone)]
-pub struct Chat<P: LLM, T: Tools> {
+pub struct Chat<P: LLM> {
     /// The chat configuration
     pub config: P::ChatConfig,
 
     /// Chat history in memory
     pub messages: Vec<ChatMessage>,
 
-    /// The tools available to the chat
-    pub tools: T,
-
     /// The LLM provider
     provider: P,
+
+    /// Whether to return the usage information in stream mode
+    usage: bool,
 }
 
-impl<P: LLM> Chat<P, ()> {
+impl<P: LLM> Chat<P> {
     /// Create a new chat
-    pub fn new(config: Config, provider: P) -> Self {
+    pub fn new(config: General, provider: P) -> Self {
         Self {
-            config: config.into(),
             messages: vec![],
             provider,
-            tools: (),
+            usage: config.usage,
+            config: config.into(),
         }
     }
-}
 
-impl<P: LLM, T: Tools> Chat<P, T> {
     /// Add the system prompt to the chat
     pub fn system<A: Agent>(mut self) -> Self {
         let messages = self.messages;
@@ -44,6 +42,12 @@ impl<P: LLM, T: Tools> Chat<P, T> {
             .into_iter()
             .chain(messages)
             .collect();
+        self
+    }
+
+    /// Add tools to the chat
+    pub fn tools(mut self, tools: Vec<Tool>) -> Self {
+        self.config = self.config.with_tools(tools);
         self
     }
 
@@ -57,9 +61,10 @@ impl<P: LLM, T: Tools> Chat<P, T> {
     pub fn stream(
         &mut self,
         message: Message,
-    ) -> impl Stream<Item = Result<StreamChunk>> + use<'_, P, T> {
+    ) -> impl Stream<Item = Result<StreamChunk>> + use<'_, P> {
         self.messages.push(message.into());
-        self.provider.stream(&self.config, &self.messages)
+        self.provider
+            .stream(&self.config, &self.messages, self.usage)
     }
 }
 

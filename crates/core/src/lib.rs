@@ -3,7 +3,7 @@
 pub use {
     agent::Agent,
     chat::{Chat, ChatMessage},
-    config::Config,
+    config::{Config, General},
     message::{Message, Role},
     provider::LLM,
     reqwest::{self, Client},
