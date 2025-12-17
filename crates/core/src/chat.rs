@@ -9,6 +9,7 @@ use futures_core::Stream;
 use serde::Serialize;
 
 /// A chat for the LLM
+#[derive(Clone)]
 pub struct Chat<P: LLM> {
     /// The chat configuration
     pub config: P::ChatConfig,
@@ -28,7 +29,7 @@ impl<P: LLM> Chat<P> {
     }
 
     /// Send a message to the LLM with streaming
-    pub fn stream(&mut self, message: Message) -> impl Stream<Item = Result<StreamChunk>> {
+    pub fn stream(&mut self, message: Message) -> impl Stream<Item = Result<StreamChunk>> + use<'_, P> {
         self.messages.push(message.into());
         self.provider.stream(&self.config, &self.messages)
     }
